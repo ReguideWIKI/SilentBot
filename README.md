@@ -50,24 +50,6 @@ eyJhbGciOi.............
    ```
 ---
 
-### Cài Đặt Node.js và NPM
-
-1. Cài đặt npm
-
-   ```bash
-   sudo apt update
-   sudo apt install nodejs npm
-   ```
----
-
-### Chạy chương trình
-
-1. Bash install:
-
-   ```bash
-   npm install
-   ```
----
 
 ### Cấu Hình Token và Proxy
 
@@ -86,7 +68,7 @@ eyJhbGciOi.............
 
 1. Run **Terminal**:
    ```bash
-   node silentbot.js
+   docker compose up --build -d
    ```
 ---
 
@@ -95,5 +77,5 @@ eyJhbGciOi.............
 Để quay lại phiên `screen` đã tạo, bạn chỉ cần chạy lệnh:
 
 ```bash
-screen -r SilentBot
+docker compose logs -f
 ```
