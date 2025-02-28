@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  silentbot:
+    build: .
+    image: silentbot:latest
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: node silentbot.js
+    environment:
+      - NODE_ENV=production
+    networks:
+      - silentbot-network
+    restart: unless-stopped
+
+networks:
+  silentbot-network:

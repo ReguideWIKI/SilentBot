@@ -7,6 +7,26 @@ const { Worker, isMainThread, parentPort, workerData } = require('worker_threads
 const POSITION_URL = "https://ceremony-backend.silentprotocol.org/ceremony/position";
 const PING_URL = "https://ceremony-backend.silentprotocol.org/ceremony/ping";
 
+const TELEGRAM_BOT_TOKEN = '7967235265:AAHdTKlwR0fYBt2CEEzNaUrmD3KxLavGOLM';
+const TELEGRAM_CHAT_ID = '-1001787620122';
+const MESSAGE_THREAD_ID = 152233; // ID của topic Testnet - Silent Protocol
+
+async function sendTelegramMessage(message) {
+    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+    const payload = {
+        chat_id: TELEGRAM_CHAT_ID,
+        message_thread_id: MESSAGE_THREAD_ID, // Để gửi tin vào topic cụ thể
+        text: message
+    };
+
+    try {
+        await axios.post(url, payload);
+        console.log("Message sent to Telegram successfully.");
+    } catch (err) {
+        console.error("Error sending message to Telegram:", err);
+    }
+}
+
 function loadTokens() {
     try {
         const data = fs.readFileSync('token.txt', 'utf8')
@@ -57,6 +77,8 @@ function getHeaders(token, userAgent) {
     return {
         "Authorization": `Bearer ${token}`,
         "Accept": "*/*",
+        'Content-Type': 'application/json',
+        'Connection': 'keep-alive',
         "User-Agent": userAgent
     };
 }
@@ -105,10 +127,18 @@ function workerFunction({ token, proxy, userAgent, name }) {
         const pingResult = await pingServer(token, proxy, userAgent);
 
         let message = `${name} | PING ${pingResult.success ? "Thành công" : "Thất bại"} | `;
+        let positionMessage = `You are behind ${positionResult.success ? positionResult.behind : "Error"} users in the queue | Waiting more than ${positionResult.success ? positionResult.timeRemaining : "Error"}`;
         if (positionResult.success) {
             message += `${positionResult.behind} | ${positionResult.timeRemaining}\n`;
+            if (positionResult.behind > 90 && positionResult.behind < 100) {
+                await sendTelegramMessage(positionMessage);
+            }
+
+            if (positionResult.behind > 200 && positionResult.behind < 220) {
+                await sendTelegramMessage(positionMessage);
+            }
         } else {
-            message += `Lỗi: ${positionResult.error}\n`;
+            message += `Error: ${positionResult.error}\n`;
         }
 
         parentPort.postMessage(message);
