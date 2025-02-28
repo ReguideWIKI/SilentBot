@@ -83,7 +83,7 @@ eyJhbGciOi.............
 
 1. Run **Terminal**:
    ```bash
-   node main.js
+   node silentbot.js
    ```
 ---
 
