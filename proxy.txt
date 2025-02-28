@@ -1,0 +1,4 @@
+103.xx.xx.xx:60000:user:pass
+103.xx.xx.xx:60000:user:pass
+103.xx.xx.xx:60000:user:pass
+103.xx.xx.xx:60000:user:pass
