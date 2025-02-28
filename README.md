@@ -29,19 +29,6 @@ eyJhbGciOi.............
 ```
 
 --- 
-## Linux (VPS)
-
-### Tạo Phiên `screen`
-
-1. Đăng nhập vào VPS của bạn qua SSH.
-
-2. Dùng screen hoặc tmux
-
-   ```bash
-   screen -S SilentBot
-   ```
----
-
 ### Clone bot
 
    ```bash
