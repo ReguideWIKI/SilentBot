@@ -14,6 +14,9 @@
 ## File token.txt
 ```
 eyJhbGciOi.............
+eyJhbGciOi.............
+eyJhbGciOi.............
+eyJhbGciOi.............
 ```
 
 ---
@@ -83,7 +86,7 @@ eyJhbGciOi.............
 
 1. Run **Terminal**:
    ```bash
-   node main.js
+   node silentbot.js
    ```
 ---
 
