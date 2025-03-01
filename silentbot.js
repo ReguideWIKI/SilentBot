@@ -177,7 +177,8 @@ if (isMainThread) {
         const tokens = loadTokens();
         const proxies = loadProxies();
         const userAgents = loadUserAgents();
-
+        let positionMessage = `Có ai đó đang chạy bot *Silent Protocol*. Hãy theo dõi cùng tôi.`;
+        await sendTelegramMessage(positionMessage);
         if (tokens.length === 0) {
             console.log(chalk.red("🚫 Không có token nào. Thoát chương trình."));
             return;
