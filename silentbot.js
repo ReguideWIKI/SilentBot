@@ -126,7 +126,7 @@ function workerFunction({ token, proxy, userAgent, name }) {
         const positionResult = await getPosition(token, proxy, userAgent);
         const pingResult = await pingServer(token, proxy, userAgent);
 
-        let message = `${name} | PING ${pingResult.success ? "Thành công" : "Thất bại"} | `;
+        let message = `${name} is pinging ${pingResult.success ? "successfully" : "fail"} | `;
         let positionMessage = `You are behind ${positionResult.success ? positionResult.behind : "Error"} users in the queue | Waiting more than ${positionResult.success ? positionResult.timeRemaining : "Error"}`;
         if (positionResult.success) {
             message += `${positionResult.behind} | ${positionResult.timeRemaining}\n`;
@@ -148,7 +148,7 @@ function workerFunction({ token, proxy, userAgent, name }) {
 async function runAutomation(tokens, proxies, userAgents) {
     const tokenData = tokens.map((token, index) => ({
         token,
-        name: `Account ${index + 1}`,
+        name: `Profile ${index + 1} `,
         proxy: proxies[index] || null,
         userAgent: userAgents[index] || "Mozilla/5.0"
     }));
@@ -177,19 +177,20 @@ if (isMainThread) {
         const tokens = loadTokens();
         const proxies = loadProxies();
         const userAgents = loadUserAgents();
-        let positionMessage = `Someone is running the bot *Silent Protocol*. Follow possition along with me.`;
+        
+        let positionMessage = `Someone is running with ${tokens.length} account through bot *SilentReRe*. Follow possition along with me.`;
         await sendTelegramMessage(positionMessage);
         if (tokens.length === 0) {
-            console.log(chalk.red("🚫 Không có token nào. Thoát chương trình."));
+            console.log(chalk.red("No tokens. Exit program."));
             return;
         }
 
         if (proxies.length < tokens.length) {
-            console.warn(chalk.yellow("⚠️ Số lượng proxy ít hơn số token. Một số token sẽ không dùng proxy."));
+            console.warn(chalk.yellow("The number of proxies is less than the number of tokens. Some tokens will not use proxies."));
         }
 
         if (userAgents.length < tokens.length) {
-            console.warn(chalk.yellow("⚠️ Số lượng user-agent ít hơn số token. Một số token sẽ dùng user-agent mặc định."));
+            console.warn(chalk.yellow("The number of user-agents is less than the number of tokens. Some tokens will use the default user-agent.."));
         }
 
         runAutomation(tokens, proxies, userAgents);
