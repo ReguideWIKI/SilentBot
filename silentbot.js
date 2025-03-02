@@ -95,6 +95,10 @@ async function getPosition(token, proxy, userAgent) {
             timeRemaining: response.data.timeRemaining
         };
     } catch (err) {
+        if (proxy) {
+            console.warn(chalk.yellow("Proxy failed, retrying with local internet..."));
+            return getPosition(token, null, userAgent);
+        }
         return {
             success: false,
             error: err.response?.status || err.message
@@ -110,6 +114,10 @@ async function pingServer(token, proxy, userAgent) {
         await axios.get(PING_URL, options);
         return { success: true };
     } catch (err) {
+        if (proxy) {
+            console.warn(chalk.yellow("Proxy failed, retrying with local internet..."));
+            return pingServer(token, null, userAgent);
+        }
         return { success: false, error: err.response?.status || err.message };
     }
 }
