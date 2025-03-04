@@ -20,7 +20,7 @@ eyJhbGciOi.............
 ```
 
 ---
-## File proxy.txt
+## File proxy.txt (KHÔNG DÙNG BỎ TRỐNG, PROXY DIE DÙNG LOCAL)
 ```
 103.xx.xx.xx:60000:user:pass
 103.xx.xx.xx:60000:user:pass
