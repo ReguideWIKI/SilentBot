@@ -48,8 +48,12 @@ function loadProxies() {
             .map(line => line.trim())
             .filter(Boolean)
             .map(line => {
-                const [ip, port, username, password] = line.split(':');
-                return `http://${username}:${password}@${ip}:${port}`;
+                const [type, ip, port, username, password] = line.split(':');
+                if (type === 'socks5') {
+                    return `socks5://${username}:${password}@${ip}:${port}`;
+                } else {
+                    return `http://${username}:${password}@${ip}:${port}`;
+                }
             });
         console.log(chalk.green(`== Loading ${data.length} proxy(s).`));
         return data;
