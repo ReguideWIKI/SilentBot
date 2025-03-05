@@ -197,14 +197,6 @@ if (isMainThread) {
             return;
         }
 
-        if (proxies.length < tokens.length) {
-            console.warn(chalk.yellow("The number of proxies is less than the number of tokens. Some tokens will not use proxies."));
-        }
-
-        if (userAgents.length < tokens.length) {
-            console.warn(chalk.yellow("The number of user-agents is less than the number of tokens. Some tokens will use the default user-agent.."));
-        }
-
         runAutomation(tokens, proxies, userAgents);
     }
 
