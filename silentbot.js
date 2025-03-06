@@ -142,11 +142,11 @@ function workerFunction({ token, proxy, userAgent, name }) {
         let positionMessage = `You are behind ${positionResult.success ? positionResult.behind : "Error"} users in the queue | Waiting more than ${positionResult.success ? positionResult.timeRemaining : "Error"}`;
         if (positionResult.success) {
             message += `${positionResult.behind} | ${positionResult.timeRemaining}\n`;
-            if (positionResult.behind > 90 && positionResult.behind < 100) {
+            if (positionResult.behind > 50 && positionResult.behind < 55) {
                 await sendTelegramMessage(positionMessage);
             }
 
-            if (positionResult.behind > 200 && positionResult.behind < 220) {
+            if (positionResult.behind > 200 && positionResult.behind < 202) {
                 await sendTelegramMessage(positionMessage);
             }
         } else {
