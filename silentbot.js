@@ -58,7 +58,7 @@ function loadProxies() {
         console.log(chalk.green(`== Loading ${data.length} proxy(s).`));
         return data;
     } catch (err) {
-        console.warn(chalk.yellow("Error: Cannot read file proxy.txt, will run with local internet."));
+        console.warn(chalk.green("Proxy local internet."));
         return [];
     }
 }
