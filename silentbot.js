@@ -48,17 +48,13 @@ function loadProxies() {
             .map(line => line.trim())
             .filter(Boolean)
             .map(line => {
-                const [type, ip, port, username, password] = line.split(':');
-                if (type === 'socks5') {
-                    return `socks5://${username}:${password}@${ip}:${port}`;
-                } else {
-                    return `http://${username}:${password}@${ip}:${port}`;
-                }
+                const [ip, port, username, password] = line.split(':');
+                return `http://${username}:${password}@${ip}:${port}`;
             });
         console.log(chalk.green(`== Loading ${data.length} proxy(s).`));
         return data;
     } catch (err) {
-        console.warn(chalk.green("Proxy local internet."));
+        console.warn(chalk.yellow("Error: Cannot read file proxy.txt, will run with local internet."));
         return [];
     }
 }
@@ -81,9 +77,17 @@ function getHeaders(token, userAgent) {
     return {
         "Authorization": `Bearer ${token}`,
         "Accept": "*/*",
-        'Content-Type': 'application/json',
-        'Connection': 'keep-alive',
-        "User-Agent": userAgent
+        "Content-Type": "application/json",
+        "Connection": "keep-alive",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36",
+        "Origin": "https://ceremony.silentprotocol.org",
+        "Referer": "https://ceremony.silentprotocol.org/",
+        "sec-ch-ua": `"Google Chrome";v="107", "Chromium";v="107", "Not=A?Brand";v="24"`,
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": `"Windows"`,
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-site"
     };
 }
 
@@ -93,6 +97,12 @@ async function getPosition(token, proxy, userAgent) {
         if (proxy) options.httpsAgent = new HttpsProxyAgent(proxy);
 
         const response = await axios.get(POSITION_URL, options);
+
+
+        if (response.data.status !== "success") {
+            return { success: false, error: "API returned non-success status" };
+        }
+
         return {
             success: true,
             behind: response.data.behind,
@@ -103,10 +113,7 @@ async function getPosition(token, proxy, userAgent) {
             console.warn(chalk.yellow("Proxy failed, retrying with local internet..."));
             return getPosition(token, null, userAgent);
         }
-        return {
-            success: false,
-            error: err.response?.status || err.message
-        };
+        return { success: false, error: err.response?.status || err.message };
     }
 }
 
@@ -115,8 +122,17 @@ async function pingServer(token, proxy, userAgent) {
         const options = { headers: getHeaders(token, userAgent) };
         if (proxy) options.httpsAgent = new HttpsProxyAgent(proxy);
 
-        await axios.get(PING_URL, options);
-        return { success: true };
+        const response = await axios.get(PING_URL, options);
+
+        if (!response.data || response.data.behind === undefined || !response.data.timeRemaining) {
+            return { success: false, error: "Invalid response format from API" };
+        }
+
+        return {
+            success: true,
+            behind: response.data.behind,
+            timeRemaining: response.data.timeRemaining
+        };
     } catch (err) {
         if (proxy) {
             console.warn(chalk.yellow("Proxy failed, retrying with local internet..."));
@@ -138,29 +154,30 @@ function workerFunction({ token, proxy, userAgent, name }) {
         const positionResult = await getPosition(token, proxy, userAgent);
         const pingResult = await pingServer(token, proxy, userAgent);
 
-        let message = `${name} is pinging ${pingResult.success ? "successfully" : "fail"} | `;
-        let positionMessage = `You are behind ${positionResult.success ? positionResult.behind : "Error"} users in the queue | Waiting more than ${positionResult.success ? positionResult.timeRemaining : "Error"}`;
-        if (positionResult.success) {
-            message += `${positionResult.behind} | ${positionResult.timeRemaining}\n`;
-            if (positionResult.behind > 50 && positionResult.behind < 55) {
+        let message = `${name} is pinging ${pingResult.success ? "successfully" : "failed"} | `;
+        let positionMessage = `You are behind ${pingResult.success ? pingResult.behind : "Error"} users in the queue | Estimated wait time: ${pingResult.success ? pingResult.timeRemaining : "Error"}`;
+
+        if (pingResult.success) {
+            message += `${pingResult.behind} users | ${pingResult.timeRemaining}\n`;
+
+            if (pingResult.behind > 50 && pingResult.behind < 60) {
                 await sendTelegramMessage(positionMessage);
             }
 
-            if (positionResult.behind > 200 && positionResult.behind < 202) {
+            if (pingResult.behind > 200 && pingResult.behind < 210) {
                 await sendTelegramMessage(positionMessage);
             }
         } else {
-            message += `Error: ${positionResult.error}\n`;
+            message += `Error: ${pingResult.error}\n`;
         }
 
         parentPort.postMessage(message);
     })();
 }
-
 async function runAutomation(tokens, proxies, userAgents) {
     const tokenData = tokens.map((token, index) => ({
         token,
-        name: `Profile ${index + 1} `,
+        name: `Profile ${index + 1}:`,
         proxy: proxies[index] || null,
         userAgent: userAgents[index] || "Mozilla/5.0"
     }));
@@ -195,6 +212,14 @@ if (isMainThread) {
         if (tokens.length === 0) {
             console.log(chalk.red("No tokens. Exit program."));
             return;
+        }
+
+        if (proxies.length < tokens.length) {
+            console.warn(chalk.yellow("The number of proxies is less than the number of tokens. Some tokens will not use proxies."));
+        }
+
+        if (userAgents.length < tokens.length) {
+            console.warn(chalk.yellow("The number of user-agents is less than the number of tokens. Some tokens will use the default user-agent.."));
         }
 
         runAutomation(tokens, proxies, userAgents);
