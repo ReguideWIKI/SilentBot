@@ -52,15 +52,24 @@ async function sendRequest(url, token) {
         "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"
     };
 
-    try {
-        const response = await fetch(url, { method: "GET", headers });
-        if (!response.ok) {
-            console.error(chalk.red(`Request failed: ${response.status} ${response.statusText}`));
+    let retries = 3;
+    while (retries > 0) {
+        try {
+            const response = await fetch(url, { method: "GET", headers });
+            if (!response.ok) {
+                console.error(chalk.red(`Request failed: ${response.status} ${response.statusText}`));
+            }
+            return await response.json();
+        } catch (error) {
+            retries--;
+            if (retries > 0) {
+                console.log(chalk.yellow(`Retrying... (${3 - retries} attempt(s) left)`));
+                await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for 2 seconds before retrying
+            } else {
+                console.error(chalk.red(`Request failed: ${error.message}`));
+                return null;
+            }
         }
-        return await response.json();
-    } catch (error) {
-        console.error(chalk.red(`Request failed: ${error.message}`));
-        return null;
     }
 }
 
@@ -90,15 +99,6 @@ function workerFunction({ token, name }) {
     (async () => {
         let positionResult = await getPosition(token);
         let pingResult = await pingServer(token);
-
-        // Retry logic if pingResult is not OK
-        let retries = 3;
-        while (!pingResult && retries > 0) {
-            console.log(chalk.yellow(`${name} retrying...`));
-            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for 2 seconds before retrying
-            pingResult = await pingServer(token);
-            retries--;
-        }
 
         let message = `${name} is pinging ${pingResult ? "successfully" : "failed"} | `;
         if (pingResult) {
