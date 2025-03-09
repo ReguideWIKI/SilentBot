@@ -55,7 +55,7 @@ async function sendRequest(url, token) {
     try {
         const response = await fetch(url, { method: "GET", headers });
         if (!response.ok) {
-            throw new Error(`HTTP Error ${response.status}`);
+            console.error(chalk.red(`Request failed: ${response.status} ${response.statusText}`));
         }
         return await response.json();
     } catch (error) {
@@ -88,8 +88,17 @@ function loadTokens() {
 
 function workerFunction({ token, name }) {
     (async () => {
-        const positionResult = await getPosition(token);
-        const pingResult = await pingServer(token);
+        let positionResult = await getPosition(token);
+        let pingResult = await pingServer(token);
+
+        // Retry logic if pingResult is not OK
+        let retries = 3;
+        while (!pingResult && retries > 0) {
+            console.log(chalk.yellow(`${name} retrying...`));
+            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for 2 seconds before retrying
+            pingResult = await pingServer(token);
+            retries--;
+        }
 
         let message = `${name} is pinging ${pingResult ? "successfully" : "failed"} | `;
         if (pingResult) {
