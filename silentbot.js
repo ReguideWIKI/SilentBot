@@ -25,7 +25,7 @@ async function sendTelegramMessage(message) {
         });
 
         if (!response.ok) {
-            throw new Error(`Telegram API Error: ${response.status}`);
+            console.error(chalk.red("Error sending message to Telegram:"), await response.text());
         }
 
         console.log(chalk.green("Message sent to Telegram successfully."));
